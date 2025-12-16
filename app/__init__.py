@@ -1,11 +1,10 @@
 from flask import Flask
-from app.database import db
-from app.models.user import User
 
 app = Flask(__name__)
 
-def init_app():
-    db.connect()
-    db.create_tables([User]) 
+def init_app(app=app):
+    from app.config import config_database
+    config_database()
+
 
     return app
