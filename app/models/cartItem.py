@@ -1,5 +1,5 @@
 from database import BaseModel
-from peewee import ForeignKeyField, FloatField, IntegerField
+from peewee import ForeignKeyField, IntegerField
 from app.models.product import Product
 from app.models.cart import Cart
 
