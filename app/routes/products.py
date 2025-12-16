@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify, request
-from app.models import Product
+from app.utils.generate_public_id import generate_public_id
+from app.models.product import Product
+from app.models.category import Category
 
 products_bp = Blueprint('products', __name__)
     
-@products_bp.get('/products')
+@products_bp.get('/')
 def get_products():
     products = Product.select()
     return jsonify({
@@ -12,17 +14,33 @@ def get_products():
         'products': [product.to_dict() for product in products]
     })
 
-@products_bp.post('/products')
+@products_bp.post('/new')
 def create_product():
     data = request.get_json()
+    data['public_id'] = generate_public_id('product')
+    if not 'category' in data:
+        return jsonify({
+            'error': True,
+            'message': 'Categoria é obrigatória.'
+        }), 400
+    
+    data['category'] = Category.select().where(Category.name == data.get('category')).first()
+    
+    if not data['category']:
+        return jsonify({
+            'error': True,
+            'message': 'Categoria não encontrada.'
+        }), 404
+
     product = Product.create(**data)
+
     return jsonify({
         'error': False,
         'message': 'Produto criado com sucesso!',
         'product': product.to_dict()
     }), 201
 
-@products_bp.get('/products/<public_id>')
+@products_bp.get('/<public_id>')
 def get_product(public_id):
     product = Product.get_or_none(Product.public_id == public_id)
     if product:
@@ -36,7 +54,7 @@ def get_product(public_id):
         'message': 'Produto não encontrado!'
     }), 404
 
-@products_bp.put('/products/<public_id>')
+@products_bp.put('/<public_id>')
 def update_product(public_id):
     data = request.get_json()
     product = Product.get_or_none(Product.public_id == public_id)
@@ -54,7 +72,7 @@ def update_product(public_id):
         'message': 'Produto não encontrado!'
     }), 404
 
-@products_bp.delete('/products/<public_id>')
+@products_bp.delete('/<public_id>')
 def delete_product(public_id):
     product = Product.get_or_none(Product.public_id == public_id)
     if product:
@@ -67,15 +85,3 @@ def delete_product(public_id):
         'error': True,
         'message': 'Produto não encontrado!'
     }), 404
-
-def to_dict(self):
-    return {
-        'id': self.id,
-        'name': self.name,
-        'description': self.description,
-        'price': self.price,
-        'stock': self.stock,
-        'image_url': self.image_url,
-        'category_id': self.category.id if self.category else None,
-        'public_id': self.public_id
-    }

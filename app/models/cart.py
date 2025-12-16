@@ -1,4 +1,4 @@
-from database import BaseModel
+from app.database import BaseModel
 from peewee import ForeignKeyField, DateTimeField, CharField
 from app.models.user import User
 import datetime

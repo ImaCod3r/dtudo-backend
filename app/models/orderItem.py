@@ -1,4 +1,4 @@
-from database import BaseModel
+from app.database import BaseModel
 from peewee import ForeignKeyField, FloatField, IntegerField
 from app.models.order import Order
 from app.models.product import Product
