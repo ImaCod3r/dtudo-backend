@@ -9,3 +9,4 @@ class Product(BaseModel):
     stock = FloatField()
     image_url = CharField(null=True)
     category = ForeignKeyField(Category, backref='products', null=True)
+    public_id = CharField(unique=True)

@@ -7,3 +7,4 @@ class User(BaseModel):
     name = CharField()
     avatar = CharField(null=True)
     role = CharField(default="customer")  # Possible roles: customer, admin
+    public_id = CharField(unique=True)
