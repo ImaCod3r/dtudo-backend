@@ -9,4 +9,5 @@ class Order(BaseModel):
     created_at = DateTimeField(default=datetime.datetime.now)
     address = CharField()
     phone_number = CharField(max_length=9)
+    public_id = CharField(unique=True)
     status = CharField(default='pending')  # Possible values: pending, shipped, canceled
