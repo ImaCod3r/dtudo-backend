@@ -27,7 +27,7 @@ def add_item_to_cart(user_public_id, product_id, quantity=1):
 
     return cart_item, None
 
-def get_cart_details(cart_public_id):
+def get_cart(cart_public_id):
     cart = Cart.get_or_none(Cart.public_id == cart_public_id)
     if not cart:
         return None, "Carrinho não encontrado."

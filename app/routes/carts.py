@@ -26,7 +26,7 @@ def add_to_cart():
 
 @cart_bp.get('/<string:cart_id>')
 def get_cart(cart_id):
-    cart, error = get_cart_details(cart_id)
+    cart, error = get_cart(cart_id)
 
     if error:
         return jsonify({
