@@ -1,13 +1,11 @@
 from flask import Blueprint, jsonify, request
-from app.utils.generate_public_id import generate_public_id
-from app.models.product import Product
-from app.models.category import Category
+from app.services.product_services import get_all_products, create_new_product, get_product_by_public_id, update_product_by_public_id, delete_product_by_public_id
 
 products_bp = Blueprint('products', __name__)
     
 @products_bp.get('/')
 def get_products():
-    products = Product.select()
+    products = get_all_products()
     return jsonify({
         'error': False,
         'message': 'Produtos listados com sucesso!',
@@ -17,22 +15,16 @@ def get_products():
 @products_bp.post('/new')
 def create_product():
     data = request.get_json()
-    data['public_id'] = generate_public_id('product')
-    if not 'category' in data:
+    
+    product, error = create_new_product(data)
+    
+    if error:
+        # Determine error code based on message
+        status = 404 if "não encontrada" in error else 400
         return jsonify({
             'error': True,
-            'message': 'Categoria é obrigatória.'
-        }), 400
-    
-    data['category'] = Category.select().where(Category.name == data.get('category')).first()
-    
-    if not data['category']:
-        return jsonify({
-            'error': True,
-            'message': 'Categoria não encontrada.'
-        }), 404
-
-    product = Product.create(**data)
+            'message': error
+        }), status
 
     return jsonify({
         'error': False,
@@ -42,46 +34,48 @@ def create_product():
 
 @products_bp.get('/<public_id>')
 def get_product(public_id):
-    product = Product.get_or_none(Product.public_id == public_id)
-    if product:
-        return jsonify({
-            'error': False,
-            'message': 'Produto encontrado com sucesso!',
-            'product': product.to_dict()
-        })
+    product, error = get_product_by_public_id(public_id)
+    
+    if error:
+         return jsonify({
+            'error': True,
+            'message': error
+        }), 404
+        
     return jsonify({
-        'error': True,
-        'message': 'Produto não encontrado!'
-    }), 404
+        'error': False,
+        'message': 'Produto encontrado com sucesso!',
+        'product': product.to_dict()
+    })
 
 @products_bp.put('/<public_id>')
 def update_product(public_id):
     data = request.get_json()
-    product = Product.get_or_none(Product.public_id == public_id)
-    if product:
-        for key, value in data.items():
-            setattr(product, key, value)
-        product.save()
+    product, error = update_product_by_public_id(public_id, data)
+    
+    if error:
         return jsonify({
-            'error': False,
-            'message': 'Produto atualizado com sucesso!',
-            'product': product.to_dict()
-        })
+            'error': True,
+            'message': error
+        }), 404
+
     return jsonify({
-        'error': True,
-        'message': 'Produto não encontrado!'
-    }), 404
+        'error': False,
+        'message': 'Produto atualizado com sucesso!',
+        'product': product.to_dict()
+    })
 
 @products_bp.delete('/<public_id>')
 def delete_product(public_id):
-    product = Product.get_or_none(Product.public_id == public_id)
-    if product:
-        product.delete_instance()
+    success, error = delete_product_by_public_id(public_id)
+    
+    if error:
         return jsonify({
-            'error': False,
-            'message': 'Produto deletado com sucesso!'
-        })
+            'error': True,
+            'message': error
+        }), 404
+        
     return jsonify({
-        'error': True,
-        'message': 'Produto não encontrado!'
-    }), 404
+        'error': False,
+        'message': 'Produto deletado com sucesso!'
+    })

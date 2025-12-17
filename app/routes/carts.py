@@ -1,35 +1,22 @@
 from flask import Blueprint, request, jsonify
-from app.models.cart import Cart
-from app.models.cartItem import CartItem
-from app.models.product import Product
-from app.models.user import User
-from app.utils.generate_public_id import generate_public_id
+from app.services.cart_services import add_item_to_cart, get_cart_details, remove_item_from_cart
 
 cart_bp = Blueprint('cart', __name__)
 
 @cart_bp.post('/add')
 def add_to_cart():
     data = request.get_json()
-    user = User.get_or_none(User.public_id == data.get('user_id'))
-    if not user:
+    user_id = data.get('user_id')
+    product_id = data.get('product_id')
+    quantity = data.get('quantity', 1)
+
+    cart_item, error = add_item_to_cart(user_id, product_id, quantity)
+
+    if error:
         return jsonify({
             'error': True,
-            'message': 'Usuário não encontrado.'
+            'message': error
         }), 404
-
-    cart, created = Cart.get_or_create(user=user, defaults={'public_id': generate_public_id('cart')})
-
-    product = Product.get_or_none(Product.id == data.get('product_id'))
-    if not product:
-        return jsonify({
-            'error': True,
-            'message': 'Produto não encontrado.'
-        }), 404
-
-    cart_item, item_created = CartItem.get_or_create(cart=cart, product=product, defaults={'quantity': data.get('quantity', 1)})
-    if not item_created:
-        cart_item.quantity += data.get('quantity', 1)
-        cart_item.save()
 
     return jsonify({
         'error': False,
@@ -37,13 +24,14 @@ def add_to_cart():
         'cart_item': cart_item.to_dict()
     }), 201
 
-@cart_bp.get('/<str:cart_id>')
+@cart_bp.get('/<string:cart_id>')
 def get_cart(cart_id):
-    cart = Cart.get_or_none(Cart.public_id == cart_id)
-    if not cart:
+    cart, error = get_cart_details(cart_id)
+
+    if error:
         return jsonify({
             'error': True,
-            'message': 'Carrinho não encontrado.'
+            'message': error
         }), 404
 
     cart_items = [item.to_dict() for item in cart.items]
@@ -68,29 +56,15 @@ def get_cart(cart_id):
 @cart_bp.delete('/remove/<int:product_id>')
 def remove_from_cart(product_id):
     data = request.get_json()
-    user = User.get_or_none(User.public_id == data.get('user_id'))
-    if not user:
+    user_id = data.get('user_id')
+
+    success, error = remove_item_from_cart(user_id, product_id)
+
+    if error:
         return jsonify({
             'error': True,
-            'message': 'Usuário não encontrado.'
+            'message': error
         }), 404
-
-    cart = Cart.get_or_none(Cart.user == user)
-
-    if not cart:
-        return jsonify({
-            'error': True,
-            'message': 'Carrinho não encontrado.'
-        }), 404
-
-    cart_item = CartItem.get_or_none(CartItem.cart == cart, CartItem.product == product_id)
-    if not cart_item:
-        return jsonify({
-            'error': True,
-            'message': 'Item do carrinho não encontrado.'
-        }), 404
-
-    cart_item.delete_instance()
 
     return jsonify({
         'error': False,

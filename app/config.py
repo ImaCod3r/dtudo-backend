@@ -1,8 +1,3 @@
-# Routes
-from app.routes.products import products_bp
-from app.routes.categories import categories_bp  
-from app.routes.carts import carts_bp  
-
 # Models
 from app.models.user import User
 from app.models.category import Category
@@ -25,6 +20,13 @@ def config_database(db):
     return db
 
 def config_routes(app):
+    # Routes - Imported here to avoid circular dependencies
+    from app.routes.products import products_bp
+    from app.routes.categories import categories_bp  
+    from app.routes.carts import cart_bp  
+    from app.routes.auth import auth_bp
+
     app.register_blueprint(products_bp, url_prefix='/products')
     app.register_blueprint(categories_bp, url_prefix='/categories')
-    app.register_blueprint(carts_bp, url_prefix='/carts')
+    app.register_blueprint(cart_bp, url_prefix='/carts')
+    app.register_blueprint(auth_bp, url_prefix='/auth')

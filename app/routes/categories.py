@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify, request
-from app.models.category import Category
+from app.services.category_services import get_all_categories, create_new_category, update_existing_category, delete_existing_category
 
 categories_bp = Blueprint('categories', __name__)
 
 @categories_bp.get('/')
 def get_categories():
-    categories = Category.select()
+    categories = get_all_categories()
     categories_list = [category.to_dict() for category in categories]
     return jsonify({
         'error': False,
@@ -22,19 +22,23 @@ def create_category():
             'message': 'Nome da categoria é obrigatório.'
         }), 400
     
-    if not data or 'slug' not in data:
-        return jsonify({
+
+    if 'slug' not in data:
+         return jsonify({
             'error': True,
             'message': 'Slug da categoria é obrigatório.'
         }), 400
 
-    if Category.select().where(Category.name == data['name']).exists():
+    slug = data['name'].lower().replace(' ', '-')
+    
+    category, error = create_new_category(data['name'], slug)
+
+    if error:
         return jsonify({
             'error': True,
-            'message': 'Categoria já existe.'
+            'message': error
         }), 400
 
-    category = Category.create(name=data['name'], slug=data['name'].lower().replace(' ', '-'))
     return jsonify({
         'error': False,
         'message': 'Categoria criada com sucesso!',
@@ -50,32 +54,32 @@ def edit_category(category_id):
             'message': 'Nome da categoria é obrigatório.'
         }), 400
 
-    try:
-        category = Category.get_by_id(category_id)
-        category.name = data['name']
-        category.save()
-        return jsonify({
-            'error': False,
-            'message': 'Categoria atualizada com sucesso!',
-            'category': category.to_dict()
-        }), 200
-    except Category.DoesNotExist:
+    category, error = update_existing_category(category_id, data['name'])
+
+    if error:
+        status = 404 if error == "Categoria não encontrada." else 400
         return jsonify({
             'error': True,
-            'message': 'Categoria não encontrada.'
-        }), 404
+            'message': error
+        }), status
+        
+    return jsonify({
+        'error': False,
+        'message': 'Categoria atualizada com sucesso!',
+        'category': category.to_dict()
+    }), 200
     
 @categories_bp.delete('/<int:category_id>/delete')
 def delete_category(category_id):
-    try:
-        category = Category.get_by_id(category_id)
-        category.delete_instance()
-        return jsonify({
-            'error': False,
-            'message': 'Categoria deletada com sucesso!'
-        }), 200
-    except Category.DoesNotExist:
+    success, error = delete_existing_category(category_id)
+    
+    if error:
         return jsonify({
             'error': True,
-            'message': 'Categoria não encontrada.'
+            'message': error
         }), 404
+        
+    return jsonify({
+        'error': False,
+        'message': 'Categoria deletada com sucesso!'
+    }), 200
