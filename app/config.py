@@ -1,6 +1,7 @@
 # Routes
 from app.routes.products import products_bp
-from app.routes.categories import categories_bp    
+from app.routes.categories import categories_bp  
+from app.routes.carts import carts_bp  
 
 # Models
 from app.models.user import User
@@ -21,3 +22,4 @@ def config_database(db):
 def config_routes(app):
     app.register_blueprint(products_bp, url_prefix='/products')
     app.register_blueprint(categories_bp, url_prefix='/categories')
+    app.register_blueprint(carts_bp, url_prefix='/carts')

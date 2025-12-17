@@ -7,3 +7,11 @@ class CartItem(BaseModel):
     cart = ForeignKeyField(Cart, backref='items')
     product = ForeignKeyField(Product, backref='cart_items')
     quantity = IntegerField()
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'cart_id': self.cart.id,
+            'product': self.product.to_dict(),
+            'quantity': self.quantity
+        }
