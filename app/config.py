@@ -12,6 +12,11 @@ from app.models.cart import Cart
 from app.models.orderItem import OrderItem
 from app.models.cartItem import CartItem
 
+import os
+
+JWT_SECRET = os.getenv("JWT_SECRET", "change-me")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRES_IN = (60 * 60 * 24) * 7  # 7 dias
 
 def config_database(db):
     db.connect()
