@@ -1,6 +1,5 @@
 from app.models.product import Product
 from app.models.category import Category
-from app.services.cart_services import get_cart_details
 from app.utils.generate_public_id import generate_public_id
 
 def get_all_products():

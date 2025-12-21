@@ -21,17 +21,12 @@ def create_category():
             'error': True,
             'message': 'Nome da categoria é obrigatório.'
         }), 400
-    
 
-    if 'slug' not in data:
-         return jsonify({
-            'error': True,
-            'message': 'Slug da categoria é obrigatório.'
-        }), 400
-
-    slug = data['name'].lower().replace(' ', '-')
+    # slug is optional; if not provided generate from name
+    slug = data.get('slug', data['name'].lower().replace(' ', '-'))
+    parent_id = data.get('parent_id')  # optional parent id for subcategory
     
-    category, error = create_new_category(data['name'], slug)
+    category, error = create_new_category(data['name'], slug, parent_id)
 
     if error:
         return jsonify({
@@ -54,10 +49,11 @@ def edit_category(category_id):
             'message': 'Nome da categoria é obrigatório.'
         }), 400
 
-    category, error = update_existing_category(category_id, data['name'])
+    parent_id = data.get('parent_id')
+    category, error = update_existing_category(category_id, data['name'], parent_id)
 
     if error:
-        status = 404 if error == "Categoria não encontrada." else 400
+        status = 404 if error == "Categoria não encontrada." or error == "Categoria pai não encontrada." else 400
         return jsonify({
             'error': True,
             'message': error
