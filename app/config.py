@@ -6,6 +6,7 @@ from app.models.order import Order
 from app.models.cart import Cart
 from app.models.orderItem import OrderItem
 from app.models.cartItem import CartItem
+from app.models.image import Image
 
 import os
 
@@ -15,7 +16,7 @@ JWT_EXPIRES_IN = (60 * 60 * 24) * 7  # 7 dias
 
 def config_database(db):
     db.connect()
-    db.create_tables([User, Category, Product, Order, Cart, OrderItem, CartItem])
+    db.create_tables([User, Category, Product, Order, Cart, OrderItem, CartItem, Image])
 
     return db
 

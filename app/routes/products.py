@@ -1,11 +1,22 @@
 from flask import Blueprint, jsonify, request
-from app.services.product_services import get_all_products, create_new_product, get_product_by_public_id, update_product_by_public_id, delete_product_by_public_id
+from peewee import IntegrityError
+from app.models.product import Product
+from app.models.category import Category
+from app.services.product_services import get_all_products, get_product_by_public_id, update_product_by_public_id, delete_product_by_public_id
+from app.services.upload_services import save_image, delete_image_file
 
 products_bp = Blueprint('products', __name__)
     
 @products_bp.get('/')
 def get_products():
-    products = get_all_products()
+    try:
+        products = get_all_products()
+    except IntegrityError:
+        return jsonify({
+            "error": False,
+            "message": "Não foi possível listar produtos"
+        })
+    
     return jsonify({
         'error': False,
         'message': 'Produtos listados com sucesso!',
@@ -14,23 +25,51 @@ def get_products():
 
 @products_bp.post('/new')
 def create_product():
-    data = request.get_json()
-    
-    product, error = create_new_product(data)
-    
-    if error:
-        # Determine error code based on message
-        status = 404 if "não encontrada" in error else 400
-        return jsonify({
-            'error': True,
-            'message': error
-        }), status
+    data = request.form
+    image_file = request.files.get("image")
 
+    name = data.get("name")
+    description = data.get("description")
+    price = data.get("price")
+    category_name = data.get("category")
+    image = save_image(image_file) if image_file else None
+
+    if not name or not price or not category_name:
+        return jsonify({
+            "error": True,
+            "message": "Tenha a certeza de que preencheu os campos obrigatórios."
+        })
+    
+    category = Category.select().where(Category.name == category_name).first()
+
+    if not category:
+        return jsonify({
+            "error": True,
+            "message": "Categoria não encontrada!"
+        })
+    
+    try: 
+        product = Product.create(
+            name=name,
+            description=description,
+            category=category,
+            price=price,
+            image=image,
+        )
+    except IntegrityError:
+        delete_image_file(image)
+        return jsonify({
+            "error": True,
+            "message": "Não foi possível salvar o produto."
+        })
     return jsonify({
-        'error': False,
-        'message': 'Produto criado com sucesso!',
-        'product': product.to_dict()
-    }), 201
+        "error": False,
+        "message": "Produto cadastrado com sucesso!",
+        "Produto": product.to_dict()
+    })
+        
+
+
 
 @products_bp.get('/<public_id>')
 def get_product(public_id):
@@ -67,15 +106,26 @@ def update_product(public_id):
 
 @products_bp.delete('/<public_id>')
 def delete_product(public_id):
-    success, error = delete_product_by_public_id(public_id)
-    
+    product, error = get_product_by_public_id(public_id)
+
     if error:
         return jsonify({
             'error': True,
-            'message': error
-        }), 404
-        
+            'message': 'Produto não encontrado.'
+        })
+
+    if product.image:
+        delete_image_file(product.image)
+
+    success, _ = delete_product_by_public_id(public_id)
+
+    if success:
+        return jsonify({
+            'error': False,
+            'message': 'Produto deletado com sucesso!'
+        })
+    
     return jsonify({
-        'error': False,
-        'message': 'Produto deletado com sucesso!'
+        'error': True,
+        'message': 'Não foi possível deletar o produto.'
     })
