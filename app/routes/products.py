@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from peewee import IntegrityError
 from app.models.product import Product
 from app.models.category import Category
-from app.services.product_services import get_all_products, get_product_by_public_id, update_product_by_public_id, delete_product_by_public_id
+from app.services.product_services import get_all_products, get_product_by_public_id, update_product_by_public_id, delete_product_by_public_id, get_products_by_category_id
 from app.services.upload_services import save_image, delete_image_file
 
 products_bp = Blueprint('products', __name__)
@@ -20,6 +20,22 @@ def get_products():
     return jsonify({
         'error': False,
         'message': 'Produtos listados com sucesso!',
+        'products': [product.to_dict() for product in products]
+    })
+
+
+@products_bp.get('/category/<int:category_id>')
+def get_products_by_category(category_id):
+    products, error = get_products_by_category_id(category_id)
+    if error:
+        return jsonify({
+            'error': True,
+            'message': error
+        }), 404
+
+    return jsonify({
+        'error': False,
+        'message': 'Produtos listados por categoria com sucesso!',
         'products': [product.to_dict() for product in products]
     })
 
