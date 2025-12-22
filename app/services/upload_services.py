@@ -6,6 +6,7 @@ from app.models.image import Image
 
 UPLOAD_FOLDER = "app/static/uploads/products"
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 def allowed_file(filename):
     """Pega o nome do arquivo divide pelo ponto (se houver) 
@@ -24,6 +25,14 @@ def save_image(file):
     # Verifca o formato da imagem
     if not allowed_file(file.filename):
         raise ValueError("Formato de imagem inválido!")
+    
+    # Verificar o tamanho real da imagem
+    file.stream.seek(0, os.SEEK_END)
+    size = file.stream.tell()
+    file.stream.seek(0)
+
+    if size > MAX_IMAGE_SIZE:
+        raise ValueError("O tamanho da imagem é maior do que o permitido (5MB)!")
     
     ext = get_file_extension(original_filename)
     filename = f"{uuid.uuid4()}.{ext}" # Gera filename seguro

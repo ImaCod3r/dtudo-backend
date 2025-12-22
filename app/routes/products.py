@@ -32,7 +32,14 @@ def create_product():
     description = data.get("description")
     price = data.get("price")
     category_name = data.get("category")
-    image = save_image(image_file) if image_file else None
+
+    try:
+        image = save_image(image_file) if image_file else None
+    except ValueError as e: 
+        return jsonify({
+            "error": True,
+            "message": str(e)
+        })
 
     if not name or not price or not category_name:
         return jsonify({
