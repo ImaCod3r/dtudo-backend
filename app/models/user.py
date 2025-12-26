@@ -1,13 +1,13 @@
 from peewee import CharField
 from app.database import BaseModel
+from app.utils.generate_public_id import generate_public_id
 
 class User(BaseModel):
     google_id = CharField(unique=True)
     email = CharField(unique=True)
     name = CharField()
-    avatar = CharField(null=True)
-    role = CharField(default="customer")  # Possible roles: customer, admin
-    public_id = CharField(unique=True)
+    avatar = CharField(null=True) 
+    public_id = CharField(null=False, unique=True, default=generate_public_id("user"))
 
     def to_dict(self):
         return {
@@ -16,6 +16,5 @@ class User(BaseModel):
             'email': self.email,
             'name': self.name,
             'avatar': self.avatar,
-            'role': self.role,
             'public_id': self.public_id
         }
