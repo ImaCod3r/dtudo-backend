@@ -8,9 +8,12 @@ from app.models.orderItem import OrderItem
 from app.models.cartItem import CartItem
 from app.models.image import Image
 
+from dotenv import load_dotenv
 import os
 
-JWT_SECRET = os.getenv("JWT_SECRET", "change-me")
+load_dotenv()
+
+JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRES_IN = (60 * 60 * 24) * 7  # 7 dias
 

@@ -2,7 +2,6 @@ from app.models.user import User
 from peewee import DoesNotExist
 
 def login_with_google(google_info: dict):
-    print(google_info)
     email = google_info["email"]
     google_id = google_info["sub"]
     name = google_info.get("name")

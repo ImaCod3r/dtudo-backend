@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, make_response
 from peewee import IntegrityError
 from app.models.product import Product
 from app.models.category import Category
@@ -9,6 +9,9 @@ products_bp = Blueprint('products', __name__)
     
 @products_bp.get('/')
 def get_products():
+    # if request.method == "OPTIONS":
+    #     return make_response("", 204)
+    
     try:
         products = get_all_products()
     except IntegrityError:
@@ -22,7 +25,6 @@ def get_products():
         'message': 'Produtos listados com sucesso!',
         'products': [product.to_dict() for product in products]
     })
-
 
 @products_bp.get('/category/<int:category_id>')
 def get_products_by_category(category_id):
