@@ -3,6 +3,7 @@ from app.middlewares.auth_middlewares import auth_required
 from app.utils.jwt import generate_jwt
 from app.utils.google_oauth import verify_google_token
 from app.services.auth_services import login_with_google
+from app.services.user_services import get_user_by_id
 from app.config import JWT_EXPIRES_IN
 
 
@@ -39,9 +40,24 @@ def google_login():
 @auth_bp.get("/me")
 @auth_required
 def get_current_user():
+    id = request.user["sub"]
+    user = get_user_by_id(id)
+    
+    if not user:
+        return jsonify({
+            "error": True,
+            "message": "Usuário não encontrado."
+        }), 404
+    
     return jsonify({
-        "id": request.user["sub"],
-        "email": request.user["email"]
+        "error": False,
+        "message": "Usuário encontrado com sucesso!",
+        "user": {
+            "name": user.name,
+            "email": user.email,
+            "avatar": user.avatar,
+            "public_id": user.public_id
+        }
     })
 
 @auth_bp.post("/logout")
