@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from app.database import db
 from app.config import config_database, config_routes
 from flask_cors import CORS
@@ -14,9 +14,12 @@ def init_app(app=app):
     CORS(app,
          resources={r"/*": {"origins": "http://localhost:5173"}},
          supports_credentials=True)
+    
+    @app.before_request
+    def handle_preflight():
+        if request.method == "OPTIONS":
+            return '', 200
 
-    # Ensure common CORS headers are present for all responses (covers cases where
-    # flask-cors might not add them for some responses).
     @app.after_request
     def cors(response):
         response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
