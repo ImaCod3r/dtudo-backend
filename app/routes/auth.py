@@ -6,7 +6,6 @@ from app.services.auth_services import login_with_google
 from app.services.user_services import get_user_by_id
 from app.config import JWT_EXPIRES_IN
 
-
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.post("/google")

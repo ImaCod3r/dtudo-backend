@@ -10,7 +10,6 @@ class Order(BaseModel):
     created_at = DateTimeField(default=datetime.datetime.now)
     phone_number = CharField(max_length=20, null=True)
     public_id = CharField(unique=True, default=generate_public_id("order"))
-    # store address id (from Address table) when an address is created
     address_id = IntegerField(null=True)
     status = CharField(default='Pendente')  # Pendente, Confirmado, Entregue, Cancelado
     
@@ -19,8 +18,7 @@ class Order(BaseModel):
             "id": self.id, 
             "user_id": self.user.public_id,
             "total_price": self.total_price,
-            "created_at": self.created_at,
-            # backref from OrderItem is 'order_items'
+            "createdAt": self.created_at,
             "items": [item.to_dict() for item in self.order_items],
             "phone_number": self.phone_number,
             "public_id": self.public_id,

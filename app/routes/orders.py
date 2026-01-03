@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.middlewares.auth_middlewares import auth_required
-from app.services.order_services import create_order, update_order_status
+from app.services.order_services import create_order, update_order_status, get_all, get_orders_by_user_id
+
 order_bp = Blueprint('order', __name__)
 
 @order_bp.post('/order/new')
@@ -30,12 +31,12 @@ def create_order_route():
             'message': 'O endereço é obrigatório.'
         }), 400
 
-    # address is expected to be an object with name, long, lat
     if isinstance(address, dict):
         addr_obj = address
     else:
         return jsonify({'error': True, 'message': 'Endereço inválido.'}), 400
 
+    
     order, error = create_order(user_id, items, addr_obj, phone_number)
 
     if error:
@@ -49,6 +50,24 @@ def create_order_route():
         'message': 'Pedido criado com sucesso!',
         'order': order.to_dict()
     }), 201
+    
+@order_bp.get("/user/")
+@auth_required
+def get_user_orders():
+    user_id = request.user["sub"]
+    orders = get_orders_by_user_id(user_id)
+    
+    if not orders:
+        return jsonify({
+            'error': True,
+            'message': 'Nenhum pedido encontrado'
+        }), 404
+    
+    return jsonify({
+        'error': False,
+        'message': 'Pedidos listados com sucesso!',
+        'orders': [order.to_dict() for order in orders]
+    })
 
 @order_bp.patch('/<order_id>/status')
 def update_order_status_route(order_id):
@@ -73,4 +92,26 @@ def update_order_status_route(order_id):
         'error': False,
         'message': 'Status do pedido atualizado com sucesso!',
         'order': order.to_dict()
+    }), 200
+
+@order_bp.get('/')
+def get_all_orders():
+    try:
+        orders = get_all()
+    except:
+        return jsonify({
+            'error': True,
+            'message': 'Erro ao carregar pedidos.'
+        }), 500
+
+    if not orders:
+        return jsonify({
+            'error': True,
+            'message': 'Nenhum pedido encontrado.'
+        }), 404
+
+    return jsonify({
+        'error': False,
+        'orders': [order.to_dict() for order in orders],
+        'total': len(orders)
     }), 200

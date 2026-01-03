@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.middlewares.auth_middlewares import auth_required
-from app.services.cart_services import add_item, get, remove_item, update_item_quantity, clear
+from app.services.cart_services import add_item, get, remove_item, update_item_quantity, delete
 
 cart_bp = Blueprint('cart', __name__, static_folder=None)
 
@@ -118,7 +118,8 @@ def update_cart_item(item_id):
 @auth_required
 def clear_cart():
     user_id = request.user["sub"]
-    _, error = clear(user_id)
+    _, error = delete(user_id)
+    
     if error:
         return jsonify({
             'error': True,

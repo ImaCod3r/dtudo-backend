@@ -81,14 +81,22 @@ def update_item_quantity(user_id, item_id, quantity):
 
     return cart_item, None
 
-def clear(user_id):
+def delete(user_id):
     user = User.get_or_none(User.id == user_id)
 
+    if not user:
+        return None, "Usuário não encontrado."
+
     cart = Cart.get_or_none(Cart.user == user)
+    
     if not cart:
         return None, "Carrinho não encontrado."
-
-    cart.items.clear()
-    cart.save()
+    
+    try:
+        cart.delete_instance(recursive=True)
+    except TypeError:
+        for item in CartItem.select().where(CartItem.cart == cart):
+            item.delete_instance()
+        cart.delete_instance()
 
     return True, None

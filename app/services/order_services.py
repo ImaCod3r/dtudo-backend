@@ -4,6 +4,13 @@ from app.models.user import User
 from app.models.product import Product
 from app.services.address_services import create_address
 
+def get_all():
+    return Order.select()
+
+def get_orders_by_user_id(user_id):
+    user = User.get_by_id(user_id)
+    return user.orders
+
 def _lookup_product_from_payload(prod_payload):
     if not prod_payload:
         return None
@@ -27,12 +34,15 @@ def create_order(user_id, items, address, phone_number):
     if not addr:
         return None, "Endereço inválido ou usuário não encontrado."
 
-    order = Order.create(
-        user=user,
-        phone_number=phone_number,
-        address_id=addr.id,
-        total_price=0.0
-    )
+    try:
+        order = Order.create(
+            user=user,
+            phone_number=phone_number,
+            address_id=addr.id,
+            total_price=0.0
+        )
+    except: 
+        return None, "Erro ao enviar pedido!"
 
     total = 0.0
 
@@ -41,7 +51,6 @@ def create_order(user_id, items, address, phone_number):
         quantity = it.get('quantity', 1)
         product = _lookup_product_from_payload(prod_payload)
         if not product:
-            # rollback created order and return error
             order.delete_instance(recursive=True)
             return None, f"Produto não encontrado para item: {prod_payload}"
 
@@ -59,14 +68,12 @@ def create_order(user_id, items, address, phone_number):
     return order, None
 
 
-def update_order_status(order_public_id, new_status):
-    """Atualiza o status do pedido. Retorna (order, error)."""
-    # mapa de status aceitos (português) para manter compatibilidade com o model
+def update_order_status(order_id, new_status):
     valid_statuses = ['Pendente', 'Confirmado', 'Entregue', 'Cancelado']
     if new_status not in valid_statuses:
         return None, "Status inválido."
 
-    order = Order.get_or_none(Order.public_id == order_public_id)
+    order = Order.get_or_none(Order.id == order_id)
     if not order:
         return None, "Pedido não encontrado."
 
