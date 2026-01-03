@@ -1,30 +1,48 @@
 from flask import Blueprint, request, jsonify
+from app.middlewares.auth_middlewares import auth_required
 from app.services.order_services import create_order, update_order_status
-from app.models.user import User
-
 order_bp = Blueprint('order', __name__)
 
-@order_bp.post('/create')
+@order_bp.post('/order/new')
+@auth_required
 def create_order_route():
     data = request.get_json()
-    user_id = data.get('user_id')
-    phone = data.get('phone')
+    user_id = request.user["sub"]
+    items = data.get('items')
     address = data.get('address')
+    phone_number = data.get('phone') or data.get('phone_number')
 
-    user = User.get_or_none(User.public_id == user_id)
-    if not user:
+    if not phone_number:
         return jsonify({
             'error': True,
-            'message': 'Usuário não encontrado.'
-        }), 404
+            'message': 'O número de telefone é obrigatório.'
+        }), 400
 
-    order, error = create_order(user, phone, address)
+    if not items:
+        return jsonify({
+            'error': True,
+            'message': 'O carrinho está vazio.'
+        }), 400
+
+    if not address:
+        return jsonify({
+            'error': True,
+            'message': 'O endereço é obrigatório.'
+        }), 400
+
+    # address is expected to be an object with name, long, lat
+    if isinstance(address, dict):
+        addr_obj = address
+    else:
+        return jsonify({'error': True, 'message': 'Endereço inválido.'}), 400
+
+    order, error = create_order(user_id, items, addr_obj, phone_number)
 
     if error:
         return jsonify({
             'error': True,
             'message': error
-        }), 404
+        }), 400
 
     return jsonify({
         'error': False,

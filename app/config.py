@@ -4,6 +4,7 @@ from app.models.category import Category
 from app.models.product import Product
 from app.models.order import Order
 from app.models.cart import Cart
+from app.models.address import Address
 from app.models.orderItem import OrderItem
 from app.models.cartItem import CartItem
 from app.models.image import Image
@@ -19,7 +20,7 @@ JWT_EXPIRES_IN = (60 * 60 * 24) * 7  # 7 dias
 
 def config_database(db):
     db.connect()
-    db.create_tables([User, Category, Product, Order, Cart, OrderItem, CartItem, Image])
+    db.create_tables([User, Category, Product, Order, Cart, OrderItem, CartItem, Image, Address])
 
     return db
 
@@ -29,8 +30,10 @@ def config_routes(app):
     from app.routes.categories import categories_bp  
     from app.routes.carts import cart_bp  
     from app.routes.auth import auth_bp
+    from app.routes.orders import order_bp
 
     app.register_blueprint(products_bp, url_prefix='/products')
     app.register_blueprint(categories_bp, url_prefix='/categories')
     app.register_blueprint(cart_bp, url_prefix='/carts')
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(order_bp, url_prefix='/orders')

@@ -3,14 +3,12 @@ from app.models.cartItem import CartItem
 from app.models.product import Product
 from app.models.user import User
 
-def add_item_to_cart(user_public_id, product_id, quantity=1):
-    user = User.get_or_none(User.public_id == user_public_id)
-    if not user:
-        return None, "Usuário não encontrado."
-    
+def add_item(user_id, product_id, quantity=1):
+    user = User.get_or_none(User.id == user_id)
     cart, created = Cart.get_or_create(user=user)
 
     product = Product.get_or_none(Product.id == product_id)
+    
     if not product:
         return None, "Produto não encontrado."
 
@@ -26,8 +24,8 @@ def add_item_to_cart(user_public_id, product_id, quantity=1):
 
     return cart_item, None
 
-def get_cart(user_id):
-    user = User.get_or_none(User.public_id == user_id)
+def get(user_id):
+    user = User.get_or_none(User.id == user_id)
     if not user:
         return None, "Usuário não encontrado."
 
@@ -38,8 +36,8 @@ def get_cart(user_id):
 
     return cart, None
 
-def remove_item_from_cart(user_id, item_id):
-    user = User.get_or_none(User.public_id == user_id)
+def remove_item(user_id, item_id):
+    user = User.get_or_none(User.id == user_id)
     if not user:
         return None, "Usuário não encontrado."
 
@@ -56,8 +54,8 @@ def remove_item_from_cart(user_id, item_id):
     
     return True, None
 
-def update_item_quantity(user_public_id, item_id, quantity):
-    user = User.get_or_none(User.public_id == user_public_id)
+def update_item_quantity(user_id, item_id, quantity):
+    user = User.get_or_none(User.id == user_id)
     if not user:
         return None, "Usuário não encontrado."
 
@@ -82,3 +80,15 @@ def update_item_quantity(user_public_id, item_id, quantity):
     cart_item.save()
 
     return cart_item, None
+
+def clear(user_id):
+    user = User.get_or_none(User.id == user_id)
+
+    cart = Cart.get_or_none(Cart.user == user)
+    if not cart:
+        return None, "Carrinho não encontrado."
+
+    cart.items.clear()
+    cart.save()
+
+    return True, None

@@ -1,16 +1,18 @@
 from flask import Blueprint, request, jsonify
-from app.services.cart_services import add_item_to_cart, get_cart, remove_item_from_cart, update_item_quantity
+from app.middlewares.auth_middlewares import auth_required
+from app.services.cart_services import add_item, get, remove_item, update_item_quantity, clear
 
 cart_bp = Blueprint('cart', __name__, static_folder=None)
 
 @cart_bp.post('/add')
+@auth_required
 def add_to_cart():
     data = request.get_json()
-    user_id = data.get('user_id')
+    user_id = request.user["sub"]
     product_id = data.get('product_id')
     quantity = data.get('quantity', 1)
 
-    cart_item, error = add_item_to_cart(user_id, product_id, quantity)
+    cart_item, error = add_item(user_id, product_id, quantity)
 
     if error:
         return jsonify({
@@ -24,17 +26,19 @@ def add_to_cart():
         'cart_item': cart_item.to_dict()
     }), 201
 
+
 @cart_bp.get('/user/cart/', strict_slashes=False)
+@auth_required
 def get_user_cart():
-    user_id = request.args.get('user_id')
-   
+    user_id = request.user["sub"]
+
     if not user_id:
         return jsonify({
             'error': True,
             'message': 'Parâmetro user_id é obrigatório.'
         }), 400
 
-    cart, error = get_cart(user_id)
+    cart, error = get(user_id)
 
     if error:
         return jsonify({
@@ -61,12 +65,10 @@ def get_user_cart():
     }), 200
     
 @cart_bp.delete('/remove/<int:item_id>')
+@auth_required
 def remove_from_cart(item_id):
-    data = request.get_json()
-    user_id = data.get('user_id')
-
-    success, error = remove_item_from_cart(user_id, item_id)
-
+    user_id = request.user["sub"]
+    _, error = remove_item(user_id, item_id)
     if error:
         return jsonify({
             'error': True,
@@ -80,9 +82,10 @@ def remove_from_cart(item_id):
 
 
 @cart_bp.put('/update/<int:item_id>')
+@auth_required
 def update_cart_item(item_id):
     data = request.get_json()
-    user_id = data.get('user_id')
+    user_id = request.user["sub"]
     quantity = data.get('quantity')
 
     if user_id is None or quantity is None:
@@ -109,4 +112,20 @@ def update_cart_item(item_id):
         'error': False,
         'message': 'Quantidade do item atualizada com sucesso!',
         'cart_item': cart_item.to_dict()
+    }), 200
+
+@cart_bp.delete('/clear')
+@auth_required
+def clear_cart():
+    user_id = request.user["sub"]
+    _, error = clear(user_id)
+    if error:
+        return jsonify({
+            'error': True,
+            'message': error
+        }), 404
+
+    return jsonify({
+        'error': False,
+        'message': 'Carrinho limpo com sucesso!'
     }), 200
