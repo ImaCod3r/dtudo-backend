@@ -24,12 +24,11 @@ def _lookup_product_from_payload(prod_payload):
 
     return None
 
-def create_order(user_id, items, address, phone_number):
+def create(user_id, items, address, phone_number):
     user = User.get_or_none(User.id == user_id)
     if not user:
         return None, "Usuário não encontrado."
 
-    # create or get address
     addr = create_address(user_id, address.get('name'), address.get('long'), address.get('lat'))
     if not addr:
         return None, "Endereço inválido ou usuário não encontrado."

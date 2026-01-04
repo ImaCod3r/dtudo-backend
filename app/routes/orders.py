@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify
 from app.middlewares.auth_middlewares import auth_required
-from app.services.order_services import create_order, update_order_status, get_all, get_orders_by_user_id
+from app.services.order_services import create, update_order_status, get_all, get_orders_by_user_id
 
 order_bp = Blueprint('order', __name__)
 
 @order_bp.post('/order/new')
 @auth_required
-def create_order_route():
+def create_order():
     data = request.get_json()
     user_id = request.user["sub"]
     items = data.get('items')
@@ -36,8 +36,7 @@ def create_order_route():
     else:
         return jsonify({'error': True, 'message': 'Endereço inválido.'}), 400
 
-    
-    order, error = create_order(user_id, items, addr_obj, phone_number)
+    order, error = create(user_id, items, addr_obj, phone_number)
 
     if error:
         return jsonify({

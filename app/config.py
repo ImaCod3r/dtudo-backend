@@ -31,9 +31,11 @@ def config_routes(app):
     from app.routes.carts import cart_bp  
     from app.routes.auth import auth_bp
     from app.routes.orders import order_bp
+    from app.routes.addresses import address_bp
 
     app.register_blueprint(products_bp, url_prefix='/products')
     app.register_blueprint(categories_bp, url_prefix='/categories')
     app.register_blueprint(cart_bp, url_prefix='/carts')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(order_bp, url_prefix='/orders')
+    app.register_blueprint(address_bp, url_prefix='/addresses')
