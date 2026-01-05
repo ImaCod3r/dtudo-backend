@@ -40,19 +40,13 @@ def delete_product_by_public_id(public_id):
     return True, None
 
 def get_products_by_category_id(category_id):
-    """Return list of products for a given category id or an error message.
-
-    This function collects the given category and all its descendant categories
-    recursively and returns products whose `category` FK is in that set.
-    """
     category = Category.get_or_none(Category.id == category_id)
     if not category:
         return None, "Categoria não encontrada."
 
-    # recursively collect category ids (includes the root category)
     def collect_ids(cat):
         ids = [cat.id]
-        # `children` is the backref; iterating executes a query for immediate children
+       
         for child in cat.children:
             ids.extend(collect_ids(child))
         return ids
