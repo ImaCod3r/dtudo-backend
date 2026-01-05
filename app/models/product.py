@@ -13,12 +13,17 @@ class Product(BaseModel):
     public_id = CharField(unique=True, default=generate_public_id("prod"))
 
     def to_dict(self):
+        try:
+            image_url = self.image.url if self.image else None
+        except Image.DoesNotExist:
+            image_url = None
+
         return {
             'id': self.id,
             'name': self.name,
             'description': self.description,
             'price': self.price,
-            'image_url': self.image.url,
+            'image_url': image_url,
             'category': self.category.name if self.category else None,
             'public_id': self.public_id
         }

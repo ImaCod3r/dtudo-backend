@@ -10,8 +10,8 @@ def get_product_by_public_id(public_id):
         return None, "Produto não encontrado!"
     return product, None
 
-def update_product_by_public_id(public_id, data):
-    product = Product.get_or_none(Product.public_id == public_id)
+def update(id, data):
+    product = Product.get_or_none(Product.id == id)
     if not product:
         return None, "Produto não encontrado!"
     
@@ -24,6 +24,8 @@ def update_product_by_public_id(public_id, data):
         del data['category']  # Remove category from data to avoid double assignment in loop
 
     for key, value in data.items():
+        if key in ['image', 'category']:
+            continue
         if hasattr(product, key):
             setattr(product, key, value)
     

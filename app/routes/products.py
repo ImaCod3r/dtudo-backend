@@ -2,16 +2,14 @@ from flask import Blueprint, jsonify, request, make_response
 from peewee import IntegrityError
 from app.models.product import Product
 from app.models.category import Category
-from app.services.product_services import get_all_products, get_product_by_public_id, update_product_by_public_id, delete_product_by_public_id, get_products_by_category_id
+from app.services.product_services import get_all_products, get_product_by_public_id, update, delete_product_by_public_id, get_products_by_category_id
 from app.services.upload_services import save_image, delete_image_file
+from app.middlewares.auth_middlewares import auth_required, is_admin
 
 products_bp = Blueprint('products', __name__)
     
 @products_bp.get('/')
 def get_products():
-    # if request.method == "OPTIONS":
-    #     return make_response("", 204)
-    
     try:
         products = get_all_products()
     except IntegrityError:
@@ -42,6 +40,8 @@ def get_products_by_category(category_id):
     })
 
 @products_bp.post('/new')
+@auth_required
+@is_admin
 def create_product():
     data = request.form
     image_file = request.files.get("image")
@@ -57,13 +57,13 @@ def create_product():
         return jsonify({
             "error": True,
             "message": str(e)
-        })
+        }), 400
 
     if not name or not price or not category_name:
         return jsonify({
             "error": True,
             "message": "Tenha a certeza de que preencheu os campos obrigatórios."
-        })
+        }), 400
     
     category = Category.select().where(Category.name == category_name).first()
 
@@ -71,7 +71,7 @@ def create_product():
         return jsonify({
             "error": True,
             "message": "Categoria não encontrada!"
-        })
+        }), 404
     
     try: 
         product = Product.create(
@@ -86,16 +86,13 @@ def create_product():
         return jsonify({
             "error": True,
             "message": "Não foi possível salvar o produto."
-        })
+        }), 400
     return jsonify({
         "error": False,
         "message": "Produto cadastrado com sucesso!",
         "Produto": product.to_dict()
-    })
+    }), 201
         
-
-
-
 @products_bp.get('/<public_id>')
 def get_product(public_id):
     product, error = get_product_by_public_id(public_id)
@@ -112,11 +109,14 @@ def get_product(public_id):
         'product': product.to_dict()
     })
 
-@products_bp.put('/<public_id>')
-def update_product(public_id):
-    data = request.get_json()
-    product, error = update_product_by_public_id(public_id, data)
+@products_bp.put('/<int:id>')
+@auth_required
+@is_admin
+def update_product(id):
+    data = request.form
     
+    product, error = update(id, data)
+
     if error:
         return jsonify({
             'error': True,
@@ -130,6 +130,8 @@ def update_product(public_id):
     })
 
 @products_bp.delete('/<public_id>')
+@auth_required
+@is_admin
 def delete_product(public_id):
     product, error = get_product_by_public_id(public_id)
 

@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
 from app.services.user_services import get_all, update_role
-from app.middlewares.auth_middlewares import auth_required
+from app.middlewares.auth_middlewares import auth_required, is_admin
 
 users_bp = Blueprint('users', __name__)
 
 @users_bp.get('/')
+@auth_required
+@is_admin
 def get_all_users():
     users = get_all()
     
@@ -21,6 +23,8 @@ def get_all_users():
     }), 200
     
 @users_bp.put("/user/<int:id>/role")
+@auth_required
+@is_admin
 def update_user_role(id):
     data = request.get_json()
     user_id = id

@@ -66,8 +66,7 @@ def create(user_id, items, address, phone_number):
 
     return order, None
 
-
-def update_order_status(order_id, new_status):
+def update_status(order_id, new_status):
     valid_statuses = ['Pendente', 'Confirmado', 'Entregue', 'Cancelado']
     if new_status not in valid_statuses:
         return None, "Status inválido."

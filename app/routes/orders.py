@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from app.middlewares.auth_middlewares import auth_required
-from app.services.order_services import create, update_order_status, get_all, get_orders_by_user_id
+from app.middlewares.auth_middlewares import auth_required, is_admin
+from app.services.order_services import create, update_status, get_all, get_orders_by_user_id
 
 order_bp = Blueprint('order', __name__)
 
@@ -68,8 +68,10 @@ def get_user_orders():
         'orders': [order.to_dict() for order in orders]
     })
 
-@order_bp.patch('/<order_id>/status')
-def update_order_status_route(order_id):
+@order_bp.put('/<int:id>/status')
+@auth_required
+@is_admin
+def update_order_status(id):
     data = request.get_json()
     status = data.get('status')
 
@@ -79,7 +81,7 @@ def update_order_status_route(order_id):
             'message': 'O campo status é obrigatório.'
         }), 400
 
-    order, error = update_order_status(order_id, status)
+    order, error = update_status(id, status)
 
     if error:
         return jsonify({
