@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, make_response
 from peewee import IntegrityError
 from app.models.product import Product
 from app.models.category import Category
-from app.services.product_services import get_all_products, get_product_by_public_id, update, delete_product_by_public_id, get_products_by_category_id
+from app.services.product_services import get_all_products, get_product_by_id, update, get_products_by_category_id
 from app.services.upload_services import save_image, delete_image_file
 from app.middlewares.auth_middlewares import auth_required, is_admin
 
@@ -129,17 +129,17 @@ def update_product(id):
         'product': product.to_dict()
     })
 
-@products_bp.delete('/<public_id>')
+@products_bp.delete('/<int:id>')
 @auth_required
 @is_admin
-def delete_product(public_id):
-    product, error = get_product_by_public_id(public_id)
+def delete_product(id):
+    product, error = get_product_by_id(id)
 
     if error:
         return jsonify({
             'error': True,
-            'message': 'Produto não encontrado.'
-        })
+            'message': error
+        }), 404
 
     if product.image:
         delete_image_file(product.image)
@@ -150,9 +150,9 @@ def delete_product(public_id):
         return jsonify({
             'error': False,
             'message': 'Produto deletado com sucesso!'
-        })
+        }), 201
     
     return jsonify({
         'error': True,
         'message': 'Não foi possível deletar o produto.'
-    })
+    }), 400

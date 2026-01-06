@@ -10,6 +10,12 @@ def get_product_by_public_id(public_id):
         return None, "Produto não encontrado!"
     return product, None
 
+def get_product_by_id(id):
+    product = Product.get_or_none(Product.id == id)
+    if not product:
+        return None, "Produto não encontrado!"
+    return product, None
+
 def update(id, data):
     product = Product.get_or_none(Product.id == id)
     if not product:
@@ -31,15 +37,6 @@ def update(id, data):
     
     product.save()
     return product, None
-
-def delete_product_by_public_id(public_id):
-    product = Product.get_or_none(Product.public_id == public_id)
-    
-    if not product:
-        return None, "Produto não encontrado!"
-    
-    product.delete_instance()
-    return True, None
 
 def get_products_by_category_id(category_id):
     category = Category.get_or_none(Category.id == category_id)
