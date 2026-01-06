@@ -55,7 +55,8 @@ def get_current_user():
             "name": user.name,
             "email": user.email,
             "avatar": user.avatar,
-            "public_id": user.public_id
+            "public_id": user.public_id,
+            "role": user.role
         }
     })
 
