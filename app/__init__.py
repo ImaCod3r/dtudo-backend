@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, request
 from app.database import db
 from app.config import config_database, config_routes
+from app.middlewares.log_middlewares import log_request
 from flask_cors import CORS
+
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -21,12 +23,14 @@ def init_app(app=app):
             return '', 200
 
     @app.after_request
-    def cors(response):
+    def after_request_func(response):
+        log_request(response)
         response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
         return response
+
 
     @app.errorhandler(413)
     def request_entity_too_large(error):

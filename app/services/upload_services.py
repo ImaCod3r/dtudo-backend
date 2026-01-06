@@ -4,7 +4,6 @@ from werkzeug.utils import secure_filename
 from peewee import IntegrityError
 from app.models.image import Image
 
-UPLOAD_FOLDER = "app/static/uploads/products"
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
 
@@ -14,7 +13,7 @@ def allowed_file(filename):
         está no set de extensões permitidas"""
     return "." in filename and get_file_extension(filename) in ALLOWED_EXTENSIONS
 
-def save_image(file):
+def save_image(file, folder="products"):
     # Pega o nome original do arquivo
     original_filename = secure_filename(file.filename)
 
@@ -37,12 +36,13 @@ def save_image(file):
     ext = get_file_extension(original_filename)
     filename = f"{uuid.uuid4()}.{ext}" # Gera filename seguro
 
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True) # Cria a pasta se ela não existir
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    upload_path = f"app/static/uploads/{folder}"
+    os.makedirs(upload_path, exist_ok=True) # Cria a pasta se ela não existir
+    file_path = os.path.join(upload_path, filename)
 
     file.save(file_path)
 
-    url = f"/static/uploads/products/{filename}"
+    url = f"/static/uploads/{folder}/{filename}"
 
     # Salva a imagem banco
     try:
@@ -57,6 +57,7 @@ def save_image(file):
         raise
 
     return image
+
 
 def get_file_extension(filename):
     return filename.rsplit(".", 1)[1].lower()

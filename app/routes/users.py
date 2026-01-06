@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
-from app.services.user_services import get_all, update_role
+from app.services.user_services import get_all, update_role, update_profile
+
 from app.middlewares.auth_middlewares import auth_required, is_admin
 
 users_bp = Blueprint('users', __name__)
@@ -59,3 +60,30 @@ def update_user_role(id):
         'error': False,
         'message': f'Cargo atualizado para {role} com sucesso!'
     }), 201
+
+@users_bp.put('/profile/update')
+@auth_required
+def update_user_profile():
+    user_id = request.user_id
+    
+    # Suporta JSON ou Form Data (para arquivos)
+    if request.is_json:
+        data = request.get_json()
+        image_file = None
+    else:
+        data = request.form.to_dict()
+        image_file = request.files.get("avatar")
+    
+    user, error = update_profile(user_id, data, image_file)
+    
+    if error:
+        return jsonify({
+            'error': True,
+            'message': error
+        }), 400
+        
+    return jsonify({
+        'error': False,
+        'message': 'Perfil atualizado com sucesso!',
+        'user': user.to_dict()
+    }), 200

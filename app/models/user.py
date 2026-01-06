@@ -9,6 +9,8 @@ class User(BaseModel):
     avatar = CharField(null=True) 
     public_id = CharField(null=False, unique=True, default=generate_public_id("user"))
     role = CharField(default="customer") # customer ou admin
+    phone = CharField(unique=True, null=True)
+
 
     def to_dict(self):
         return {
@@ -18,5 +20,6 @@ class User(BaseModel):
             'name': self.name,
             'avatar': self.avatar,
             'public_id': self.public_id,
-            'role': self.role
+            'role': self.role,
+            'phone': self.phone
         }
