@@ -12,6 +12,7 @@ class Order(BaseModel):
     public_id = CharField(unique=True, default=lambda: generate_public_id("order"))
     address_id = IntegerField(null=True)
     status = CharField(default='Pendente')  # Pendente, Confirmado, Entregue, Cancelado
+    affiliate_code = CharField(null=True)
     
     def to_dict(self): 
         return {
@@ -24,5 +25,6 @@ class Order(BaseModel):
             "public_id": self.public_id,
             "address_id": self.address_id,
             "status": self.status,
-            "shipping_fee": 2000.0
+            "shipping_fee": 2000.0,
+            "affiliate_code": self.affiliate_code
         }

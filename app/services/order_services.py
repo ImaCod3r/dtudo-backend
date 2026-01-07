@@ -29,7 +29,7 @@ def _lookup_product_from_payload(prod_payload):
 
     return None
 
-def create(user_id, items, address, phone_number):
+def create(user_id, items, address, phone_number, affiliate_code=None):
     user = User.get_or_none(User.id == user_id)
     if not user:
         return None, "Usuário não encontrado."
@@ -43,7 +43,8 @@ def create(user_id, items, address, phone_number):
             user=user,
             phone_number=phone_number,
             address_id=addr.id,
-            total_price=0.0
+            total_price=0.0,
+            affiliate_code=affiliate_code
         )
     except: 
         return None, "Erro ao enviar pedido!"
@@ -127,5 +128,9 @@ def update_status(order_id, new_status):
                 send_notification_to_user(order.user.id, status_messages[new_status])
             except Exception as e:
                 print(f"Failed to send notification to user: {e}")
+
+    if new_status == 'Entregue':
+        from app.services.affiliate_services import calculate_commissions_for_order
+        calculate_commissions_for_order(order)
 
     return order, None

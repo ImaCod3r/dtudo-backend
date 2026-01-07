@@ -12,6 +12,7 @@ def create_order():
     items = data.get('items')
     address = data.get('address')
     phone_number = data.get('phone') or data.get('phone_number')
+    affiliate_code = data.get('affiliate_code')
 
     if not phone_number:
         return jsonify({
@@ -36,7 +37,7 @@ def create_order():
     else:
         return jsonify({'error': True, 'message': 'Endereço inválido.'}), 400
 
-    order, error = create(user_id, items, addr_obj, phone_number)
+    order, error = create(user_id, items, addr_obj, phone_number, affiliate_code)
 
     if error:
         return jsonify({
