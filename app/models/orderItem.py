@@ -1,5 +1,5 @@
 from app.database import BaseModel
-from peewee import ForeignKeyField, FloatField, IntegerField
+from peewee import ForeignKeyField, FloatField, IntegerField, CharField
 from app.models.order import Order
 from app.models.product import Product
 
@@ -8,6 +8,7 @@ class OrderItem(BaseModel):
     product = ForeignKeyField(Product, backref='items')
     quantity = IntegerField()
     price = FloatField()  # Price at the time of order
+    affiliate_code = CharField(null=True)
 
     def to_dict(self):
         product_public_id = None
@@ -32,5 +33,6 @@ class OrderItem(BaseModel):
             "category": category,
             "image": image,
             "quantity": self.quantity,
-            "price": self.price
+            "price": self.price,
+            "affiliate_code": self.affiliate_code
         }

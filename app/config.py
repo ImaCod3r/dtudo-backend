@@ -23,6 +23,7 @@ load_dotenv()
 JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRES_IN = (60 * 60 * 24) * 7  # 7 dias
+JWT_SECURE = os.getenv("JWT_SECURE")
 
 def config_database(db):
     db.connect()

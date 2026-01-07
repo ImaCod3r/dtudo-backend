@@ -4,7 +4,7 @@ from app.utils.jwt import generate_jwt
 from app.utils.google_oauth import verify_google_token
 from app.services.auth_services import login_with_google
 from app.services.user_services import get_user_by_id
-from app.config import JWT_EXPIRES_IN
+from app.config import JWT_EXPIRES_IN, JWT_SECURE
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -28,7 +28,7 @@ def google_login():
         "access_token",
         token,
         httponly=True,
-        secure=False,    
+        secure=JWT_SECURE,    
         samesite="Lax",
         max_age=JWT_EXPIRES_IN,
         path="/"

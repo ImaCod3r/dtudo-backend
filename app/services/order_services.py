@@ -13,7 +13,9 @@ def get_all():
     return Order.select()
 
 def get_orders_by_user_id(user_id):
-    user = User.get_by_id(user_id)
+    user = User.get_or_none(User.id == user_id)
+    if not user:
+        return []
     return user.orders
 
 def _lookup_product_from_payload(prod_payload):
@@ -63,7 +65,8 @@ def create(user_id, items, address, phone_number, affiliate_code=None):
             order=order,
             product=product,
             quantity=quantity,
-            price=product.price
+            price=product.price,
+            affiliate_code=it.get('affiliate_code')
         )
         total += quantity * product.price
 

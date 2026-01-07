@@ -19,7 +19,9 @@ def create_address(user_id, name, long, lat):
     return new_address
 
 def get_addresses(user_id):
-    user = User.get_by_id(user_id)
+    user = User.get_or_none(User.id == user_id)
+    if not user:
+        return None, "Usuário não encontrado"
     
     addresses = Address.select().where(Address.user == user)
     

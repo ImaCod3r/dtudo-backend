@@ -3,6 +3,7 @@ from app.database import db
 from app.config import config_database, config_routes
 from app.middlewares.log_middlewares import log_request
 from flask_cors import CORS
+import os
 
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -12,23 +13,20 @@ def init_app(app=app):
     config_database(db)
     config_routes(app)
 
-    # Allow the frontend origin during development. Use exact origin (no trailing slash).
+    # CORS configuration
+    allowed_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")]
+    
     CORS(app,
-         resources={r"/*": {"origins": "http://localhost:5173"}},
+         resources={r"/*": {
+             "origins": allowed_origins,
+             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+             "allow_headers": ["Content-Type", "Authorization"]
+         }},
          supports_credentials=True)
     
-    @app.before_request
-    def handle_preflight():
-        if request.method == "OPTIONS":
-            return '', 200
-
     @app.after_request
     def after_request_func(response):
         log_request(response)
-        response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
         return response
 
 

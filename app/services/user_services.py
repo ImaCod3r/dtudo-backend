@@ -15,7 +15,7 @@ def get_all():
     return users
 
 def update_role(user_id, role):
-    user = User.get_by_id(user_id)
+    user = User.get_or_none(User.id == user_id)
     
     if not user:
         raise ValueError("Usuário não encontrado.")

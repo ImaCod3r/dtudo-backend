@@ -13,7 +13,9 @@ affiliates_bp = Blueprint('affiliates', __name__)
 @auth_required
 def apply():
     user_id = request.user["sub"]
-    user = User.get_by_id(user_id)
+    user = User.get_or_none(User.id == user_id)
+    if not user:
+        return jsonify({"error": "Usuário não encontrado."}), 404
     
     bi_front = request.files.get('bi_front')
     bi_back = request.files.get('bi_back')
@@ -37,7 +39,9 @@ def apply():
 @auth_required
 def get_my_affiliate_info():
     user_id = request.user["sub"]
-    user = User.get_by_id(user_id)
+    user = User.get_or_none(User.id == user_id)
+    if not user:
+        return jsonify({"is_affiliate": False, "error": "Usuário não encontrado."}), 404
     
     affiliate = get_affiliate_by_user(user)
     if not affiliate:
@@ -54,7 +58,9 @@ def get_my_affiliate_info():
 @auth_required
 def withdraw():
     user_id = request.user["sub"]
-    user = User.get_by_id(user_id)
+    user = User.get_or_none(User.id == user_id)
+    if not user:
+        return jsonify({"error": "Usuário não encontrado."}), 404
     
     affiliate = get_affiliate_by_user(user)
     if not affiliate or affiliate.status != 'approved':

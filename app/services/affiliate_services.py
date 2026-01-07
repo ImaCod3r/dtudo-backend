@@ -10,7 +10,7 @@ from app.models.image import Image
 from app.services.upload_services import save_image, delete_image_file
 from app.utils.banks import ANGOLAN_BANKS
 from app.services.notification_services import send_notification_to_user, send_notification_to_admins
-from peewee import IntegrityError
+from peewee import IntegrityError, fn
 import datetime
 
 def generate_affiliate_code(length=6):
@@ -113,35 +113,41 @@ def update_affiliate_status(affiliate_id, status, admin_user):
     return affiliate
 
 def calculate_commissions_for_order(order):
-    if order.status != 'Concluído' or not order.affiliate_code:
+    if order.status != 'Entregue':
         return
     
-    affiliate = Affiliate.select().where(Affiliate.code == order.affiliate_code).first()
-    if not affiliate or affiliate.status != 'approved':
-        return
-
-    # 5% commission per product
+    # 5% commission per product, based on the affiliate code associated with that item
     for item in order.order_items:
+        # Pega o código do item, ou cai de volta para o código geral do pedido se houver
+        code = item.affiliate_code or order.affiliate_code
+        
+        if not code:
+            continue
+
         # Check if commission already exists for this item to avoid duplicates
         if AffiliateCommission.select().where(AffiliateCommission.order_item == item).exists():
             continue
             
+        affiliate = Affiliate.select().where(Affiliate.code == code).first()
+        if not affiliate or affiliate.status != 'approved':
+            continue
+
         commission_amount = item.price * item.quantity * 0.05
         AffiliateCommission.create(
             affiliate=affiliate,
             order=order,
             order_item=item,
             amount=commission_amount,
-            status='available' # Requirement says "commission only generated if order is concluído", so it's already available
+            status='available'
         )
 
 def get_affiliate_balance(affiliate):
     # Total available minus already withdrawn or pending withdrawals?
     # Actually, let's just sum available commissions.
-    available = AffiliateCommission.select().where(
+    available = AffiliateCommission.select(fn.SUM(AffiliateCommission.amount)).where(
         AffiliateCommission.affiliate == affiliate,
         AffiliateCommission.status == 'available'
-    ).select_sum(AffiliateCommission.amount)[0] or 0.0
+    ).scalar() or 0.0
     
     return available
 
@@ -222,19 +228,19 @@ def process_withdrawal(withdrawal_id, status, admin_user):
     return withdrawal
 
 def get_affiliate_stats(affiliate):
-    total_earned = AffiliateCommission.select().where(
+    total_earned = AffiliateCommission.select(fn.SUM(AffiliateCommission.amount)).where(
         AffiliateCommission.affiliate == affiliate
-    ).select_sum(AffiliateCommission.amount)[0] or 0.0
+    ).scalar() or 0.0
     
-    withdrawn = Withdrawal.select().where(
+    withdrawn = Withdrawal.select(fn.SUM(Withdrawal.amount)).where(
         Withdrawal.affiliate == affiliate,
         Withdrawal.status == 'paid'
-    ).select_sum(Withdrawal.amount)[0] or 0.0
+    ).scalar() or 0.0
     
-    pending_withdrawal = Withdrawal.select().where(
+    pending_withdrawal = Withdrawal.select(fn.SUM(Withdrawal.amount)).where(
         Withdrawal.affiliate == affiliate,
         Withdrawal.status == 'pending'
-    ).select_sum(Withdrawal.amount)[0] or 0.0
+    ).scalar() or 0.0
     
     balance = total_earned - withdrawn - pending_withdrawal
     
