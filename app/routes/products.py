@@ -7,7 +7,9 @@ from app.services.product_services import (
     create,
     delete,
     get_products_by_category_id, 
-    get_product_by_public_id
+    get_product_by_public_id,
+    get_new_arrivals,
+    get_best_sellers
 )
 from app.middlewares.auth_middlewares import auth_required, is_admin
 
@@ -142,3 +144,57 @@ def delete_product(id):
         'error': False,
         'message': 'Produto deletado com sucesso!'
     }), 200
+
+@products_bp.get('/new-arrivals')
+def get_new_arrivals_products():
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 12, type=int)
+        
+        products, total_count = get_new_arrivals(page, per_page)
+        
+        total_pages = (total_count + per_page - 1) // per_page if per_page > 0 else 1
+        
+        return jsonify({
+            'error': False,
+            'message': 'Novidades listadas com sucesso!',
+            'products': [product.to_dict() for product in products],
+            'pagination': {
+                'total_items': total_count,
+                'total_pages': total_pages,
+                'current_page': page,
+                'per_page': per_page
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            "error": True,
+            "message": f"Erro interno: {str(e)}"
+        }), 500
+
+@products_bp.get('/best-sellers')
+def get_best_sellers_products():
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 12, type=int)
+        
+        products, total_count = get_best_sellers(page, per_page)
+        
+        total_pages = (total_count + per_page - 1) // per_page if per_page > 0 else 1
+        
+        return jsonify({
+            'error': False,
+            'message': 'Mais vendidos listados com sucesso!',
+            'products': [product.to_dict() for product in products],
+            'pagination': {
+                'total_items': total_count,
+                'total_pages': total_pages,
+                'current_page': page,
+                'per_page': per_page
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            "error": True,
+            "message": f"Erro interno: {str(e)}"
+        }), 500

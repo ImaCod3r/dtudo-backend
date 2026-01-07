@@ -146,3 +146,23 @@ def get_products_by_category_id(category_id, page=1, per_page=12):
     products = list(query.paginate(page, per_page))
     
     return products, total_count, None
+
+def get_new_arrivals(page=1, per_page=12):
+    query = Product.select().order_by(Product.created_at.desc())
+    total_count = query.count()
+    products = list(query.paginate(page, per_page))
+    return products, total_count
+
+def get_best_sellers(page=1, per_page=12):
+    from app.models.orderItem import OrderItem
+    from peewee import fn
+    
+    query = (Product
+             .select(Product, fn.SUM(OrderItem.quantity).alias('total_sales'))
+             .join(OrderItem, on=(Product.id == OrderItem.product))
+             .group_by(Product)
+             .order_by(fn.SUM(OrderItem.quantity).desc()))
+    
+    total_count = query.count()
+    products = list(query.paginate(page, per_page))
+    return products, total_count

@@ -1,4 +1,5 @@
-from peewee import CharField, FloatField, ForeignKeyField
+from peewee import CharField, FloatField, ForeignKeyField, DateTimeField
+from datetime import datetime
 from app.database import BaseModel
 from app.models.category import Category
 from app.models.image import Image
@@ -11,6 +12,7 @@ class Product(BaseModel):
     image = ForeignKeyField(Image, null=True, backref="products", on_delete="SET NULL")
     category = ForeignKeyField(Category, backref='products', null=True)
     public_id = CharField(unique=True, default=lambda: generate_public_id("prod"))
+    created_at = DateTimeField(default=datetime.now)
 
     def to_dict(self):
         image_url = None
@@ -38,5 +40,6 @@ class Product(BaseModel):
             'price': self.price,
             'image_url': image_url,
             'category': category_name,
-            'public_id': self.public_id
+            'public_id': self.public_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
