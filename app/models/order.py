@@ -23,5 +23,6 @@ class Order(BaseModel):
             "phone_number": self.phone_number,
             "public_id": self.public_id,
             "address_id": self.address_id,
-            "status": self.status
+            "status": self.status,
+            "shipping_fee": 2000.0
         }

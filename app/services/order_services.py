@@ -7,6 +7,8 @@ from app.models.cartItem import CartItem
 from app.services.address_services import create_address
 from app.services.notification_services import send_notification_to_admins, send_notification_to_user
 
+SHIPPING_FEE = 2000.0
+
 def get_all():
     return Order.select()
 
@@ -46,7 +48,7 @@ def create(user_id, items, address, phone_number):
     except: 
         return None, "Erro ao enviar pedido!"
 
-    total = 0.0
+    total = SHIPPING_FEE
 
     for it in items:
         prod_payload = it.get('product')
