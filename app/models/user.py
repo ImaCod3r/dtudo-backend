@@ -7,7 +7,7 @@ class User(BaseModel):
     email = CharField(unique=True)
     name = CharField()
     avatar = CharField(null=True) 
-    public_id = CharField(null=False, unique=True, default=generate_public_id("user"))
+    public_id = CharField(null=False, unique=True, default=lambda: generate_public_id("user"))
     role = CharField(default="customer") # customer ou admin
     phone = CharField(unique=True, null=True)
 

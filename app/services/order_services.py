@@ -2,7 +2,10 @@ from app.models.order import Order
 from app.models.orderItem import OrderItem
 from app.models.user import User
 from app.models.product import Product
+from app.models.cart import Cart
+from app.models.cartItem import CartItem
 from app.services.address_services import create_address
+from app.services.notification_services import send_notification_to_admins
 
 def get_all():
     return Order.select()
@@ -63,6 +66,24 @@ def create(user_id, items, address, phone_number):
 
     order.total_price = total
     order.save()
+
+    try:
+        send_notification_to_admins({
+            "title": "Novo Pedido Recebido! 🛍️",
+            "body": f"Pedido #{order.id} - Total: Kz {order.total_price:,.2f}",
+            "url": "/pedidos"
+        })
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
+
+    # Limpar carrinho do usuário
+    try:
+        cart = Cart.get_or_none(Cart.user == user)
+        if cart:
+            CartItem.delete().where(CartItem.cart == cart).execute()
+    except Exception as e:
+        print(f"Erro ao limpar carrinho: {e}")
+
 
     return order, None
 

@@ -6,7 +6,7 @@ import datetime
 
 class Cart(BaseModel):
     user = ForeignKeyField(User, backref='cart')
-    public_id = CharField(unique=True, default=generate_public_id("cart"))
+    public_id = CharField(unique=True, default=lambda: generate_public_id("cart"))
     created_at = DateTimeField(default=datetime.datetime.now)
     updated_at = DateTimeField(default=datetime.datetime.now)
 

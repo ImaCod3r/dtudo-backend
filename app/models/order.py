@@ -9,7 +9,7 @@ class Order(BaseModel):
     total_price = FloatField()
     created_at = DateTimeField(default=datetime.datetime.now)
     phone_number = CharField(max_length=20, null=True)
-    public_id = CharField(unique=True, default=generate_public_id("order"))
+    public_id = CharField(unique=True, default=lambda: generate_public_id("order"))
     address_id = IntegerField(null=True)
     status = CharField(default='Pendente')  # Pendente, Confirmado, Entregue, Cancelado
     

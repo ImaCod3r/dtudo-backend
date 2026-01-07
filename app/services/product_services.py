@@ -4,8 +4,14 @@ from app.models.category import Category
 from app.models.image import Image
 from app.services.upload_services import save_image, delete_image_file
 
-def get_all_products():
-    return list(Product.select())
+import math
+
+def get_all_products(page=1, per_page=12):
+    query = Product.select()
+    total_count = query.count()
+    products = list(query.paginate(page, per_page))
+    return products, total_count
+
 
 def get_product_by_public_id(public_id):
     product = Product.get_or_none(Product.public_id == public_id)
@@ -123,10 +129,10 @@ def delete(id):
     product.delete_instance()
     return True, None
 
-def get_products_by_category_id(category_id):
+def get_products_by_category_id(category_id, page=1, per_page=12):
     category = Category.get_or_none(Category.id == category_id)
     if not category:
-        return None, "Categoria não encontrada."
+        return None, 0, "Categoria não encontrada."
 
     def collect_ids(cat):
         ids = [cat.id]
@@ -135,5 +141,8 @@ def get_products_by_category_id(category_id):
         return ids
 
     category_ids = collect_ids(category)
-    products = list(Product.select().where(Product.category.in_(category_ids)))
-    return products, None
+    query = Product.select().where(Product.category.in_(category_ids))
+    total_count = query.count()
+    products = list(query.paginate(page, per_page))
+    
+    return products, total_count, None

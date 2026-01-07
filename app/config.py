@@ -9,6 +9,7 @@ from app.models.orderItem import OrderItem
 from app.models.cartItem import CartItem
 from app.models.image import Image
 from app.models.log import Log
+from app.models.push_subscription import PushSubscription
 
 
 from dotenv import load_dotenv
@@ -22,7 +23,7 @@ JWT_EXPIRES_IN = (60 * 60 * 24) * 7  # 7 dias
 
 def config_database(db):
     db.connect()
-    db.create_tables([User, Category, Product, Order, Cart, OrderItem, CartItem, Image, Address, Log])
+    db.create_tables([User, Category, Product, Order, Cart, OrderItem, CartItem, Image, Address, Log, PushSubscription])
 
 
     return db
@@ -38,6 +39,7 @@ def config_routes(app):
     from app.routes.users import users_bp
     from app.routes.logs import logs_bp
     from app.routes.images import images_bp
+    from app.routes.notifications import notifications_bp
 
 
 
@@ -50,3 +52,4 @@ def config_routes(app):
     app.register_blueprint(users_bp, url_prefix='/users')
     app.register_blueprint(logs_bp, url_prefix='/logs')
     app.register_blueprint(images_bp, url_prefix='/images')
+    app.register_blueprint(notifications_bp, url_prefix='/notifications')

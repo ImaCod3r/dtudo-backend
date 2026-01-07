@@ -16,12 +16,25 @@ products_bp = Blueprint('products', __name__)
 @products_bp.get('/')
 def get_products():
     try:
-        products = get_all_products()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 12, type=int)
+        
+        products, total_count = get_all_products(page, per_page)
+        
+        total_pages = (total_count + per_page - 1) // per_page if per_page > 0 else 1
+        
         return jsonify({
             'error': False,
             'message': 'Produtos listados com sucesso!',
-            'products': [product.to_dict() for product in products]
+            'products': [product.to_dict() for product in products],
+            'pagination': {
+                'total_items': total_count,
+                'total_pages': total_pages,
+                'current_page': page,
+                'per_page': per_page
+            }
         })
+
     except Exception as e:
         return jsonify({
             "error": True,
@@ -30,18 +43,31 @@ def get_products():
 
 @products_bp.get('/category/<int:category_id>')
 def get_products_by_category(category_id):
-    products, error = get_products_by_category_id(category_id)
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 12, type=int)
+
+    products, total_count, error = get_products_by_category_id(category_id, page, per_page)
+    
     if error:
         return jsonify({
             'error': True,
             'message': error
         }), 404
 
+    total_pages = (total_count + per_page - 1) // per_page if per_page > 0 else 1
+
     return jsonify({
         'error': False,
         'message': 'Produtos listados por categoria com sucesso!',
-        'products': [product.to_dict() for product in products]
+        'products': [product.to_dict() for product in products],
+        'pagination': {
+            'total_items': total_count,
+            'total_pages': total_pages,
+            'current_page': page,
+            'per_page': per_page
+        }
     })
+
 
 @products_bp.post('/new')
 # @auth_required
