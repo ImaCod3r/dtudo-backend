@@ -5,7 +5,7 @@ from app.models.product import Product
 from app.models.cart import Cart
 from app.models.cartItem import CartItem
 from app.services.address_services import create_address
-from app.services.notification_services import send_notification_to_admins
+from app.services.notification_services import send_notification_to_admins, send_notification_to_user
 
 def get_all():
     return Order.select()
@@ -96,7 +96,34 @@ def update_status(order_id, new_status):
     if not order:
         return None, "Pedido não encontrado."
 
+    old_status = order.status
     order.status = new_status
     order.save()
+
+    # Enviar notificação ao cliente sobre a mudança de status
+    if old_status != new_status:
+        status_messages = {
+            'Confirmado': {
+                'title': 'Pedido Confirmado! ✅',
+                'body': f'Seu pedido #{order.id} foi confirmado e está sendo preparado.',
+                'url': '/perfil'
+            },
+            'Entregue': {
+                'title': 'Pedido Entregue! 🎉',
+                'body': f'Seu pedido #{order.id} foi entregue com sucesso. Obrigado!',
+                'url': '/perfil'
+            },
+            'Cancelado': {
+                'title': 'Pedido Cancelado ❌',
+                'body': f'Seu pedido #{order.id} foi cancelado.',
+                'url': '/perfil'
+            }
+        }
+        
+        if new_status in status_messages:
+            try:
+                send_notification_to_user(order.user.id, status_messages[new_status])
+            except Exception as e:
+                print(f"Failed to send notification to user: {e}")
 
     return order, None

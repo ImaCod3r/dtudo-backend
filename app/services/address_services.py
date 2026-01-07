@@ -37,3 +37,9 @@ def delete(address_id):
     deleted = address.delete_instance()
 
     return deleted, None
+
+def get_address_by_id(address_id):
+    address = Address.get_or_none(Address.id == address_id)
+    if not address:
+        return None, "Endereço não encontrado"
+    return address, None

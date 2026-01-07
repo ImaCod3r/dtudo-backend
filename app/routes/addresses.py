@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from app.middlewares.auth_middlewares import auth_required
-from app.services.address_services import create_address, get_addresses, delete
+from app.middlewares.auth_middlewares import auth_required, is_admin
+from app.services.address_services import create_address, get_addresses, delete, get_address_by_id
 
 address_bp = Blueprint('address', __name__)
 
@@ -20,7 +20,7 @@ def create():
         }), 400
         
     try:    
-        address = create_address(user_id)
+        address = create_address(user_id, name, long, lat)
     except:
         return jsonify({
             'error': True,
@@ -68,3 +68,20 @@ def remove_address(id):
         'error': False,
         'message': 'Endereço deletado com sucesso.'
     }), 200
+
+@address_bp.get('/<int:id>')
+@auth_required
+@is_admin
+def get_address(id):
+    address, error = get_address_by_id(id)
+    if error:
+        return jsonify({
+            'error': True,
+            'message': error
+        }), 404
+        
+    return jsonify({
+        'error': False,
+        'message': 'Endereço encontrado com sucesso!',
+        'address': address.to_dict()
+    })
