@@ -23,6 +23,12 @@ def init_app(app=app):
              "allow_headers": ["Content-Type", "Authorization"]
          }},
          supports_credentials=True)
+
+    @app.get("/")
+    def index():
+        return jsonify({
+            "message": "Bem-vindo ao DTudo!"
+        }), 200
     
     @app.after_request
     def after_request_func(response):
