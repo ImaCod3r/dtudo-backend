@@ -24,6 +24,18 @@ def init_app(app=app):
          }},
          supports_credentials=True)
 
+    @app.before_request
+    def before_request():
+        # Abre a conexão se ela estiver fechada ou caiu
+        if db.is_closed():
+            db.connect(reuse_if_open=True)
+
+    @app.teardown_request
+    def teardown_request(exception):
+        # Fecha para não deixar conexões penduradas na Hostinger
+        if not db.is_closed():
+            db.close()
+
     @app.get("/")
     def index():
         return jsonify({

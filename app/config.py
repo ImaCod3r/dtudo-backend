@@ -46,8 +46,7 @@ def config_routes(app):
     from app.routes.notifications import notifications_bp
     from app.routes.affiliates import affiliates_bp
 
-
-
+    # Registrar rotas
     app.register_blueprint(products_bp, url_prefix='/products')
     app.register_blueprint(categories_bp, url_prefix='/categories')
     app.register_blueprint(cart_bp, url_prefix='/carts')
