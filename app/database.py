@@ -11,7 +11,10 @@ db = MySQLDatabase(
     password=os.getenv("DB_PASSWORD", ""),
     host=os.getenv("DB_HOST", "localhost"),
     port=int(os.getenv("DB_PORT", 3306)),
-    charset='utf8mb4'
+    charset='utf8mb4',
+    thread_safe=True,
+    autorollback=True,
+    connect_timeout=10
 )
 
 class BaseModel(Model):
