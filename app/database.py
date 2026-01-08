@@ -7,6 +7,8 @@ load_dotenv()
 # Configuração do MySQL a partir de variáveis de ambiente
 db = MySQLDatabase(
     os.getenv("DB_NAME", "dtudo"),
+    stale_timeout=300,
+    max_connections=8,
     user=os.getenv("DB_USER", "root"),
     password=os.getenv("DB_PASSWORD", ""),
     host=os.getenv("DB_HOST", "localhost"),
