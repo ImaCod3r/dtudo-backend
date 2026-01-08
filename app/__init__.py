@@ -36,6 +36,12 @@ def init_app(app=app):
         if not db.is_closed():
             db.close()
 
+    @app.after_request
+    def after_request(response):
+        if not db.is_closed():
+            db.close()
+        return response
+
     @app.get("/")
     def index():
         return jsonify({
