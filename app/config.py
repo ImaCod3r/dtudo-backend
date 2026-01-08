@@ -26,7 +26,9 @@ JWT_EXPIRES_IN = (60 * 60 * 24) * 7  # 7 dias
 JWT_SECURE = os.getenv("JWT_SECURE")
 
 def config_database(db):
+    db.connect(reuse_if_open=True)
     db.create_tables([User, Category, Product, Order, Cart, OrderItem, CartItem, Image, Address, Log, PushSubscription, Affiliate, AffiliateCommission, Withdrawal])
+    db.close()
     return db
 
 def config_routes(app):
