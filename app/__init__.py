@@ -3,6 +3,7 @@ from app.database import db
 from app.config import config_database, config_routes
 from app.middlewares.log_middlewares import log_request
 from flask_cors import CORS
+from playhouse.pool import MaxConnectionsExceeded
 import os
 
 
@@ -26,15 +27,14 @@ def init_app(app=app):
 
     @app.before_request
     def before_request():
-        # Abre a conexão se ela estiver fechada ou caiu
         if db.is_closed():
-            db.connect(reuse_if_open=True)
-
-    @app.teardown_request
-    def teardown_request(exception):
-        # Fecha para não deixar conexões penduradas na Hostinger
-        if not db.is_closed():
-            db.close()
+            try:
+                db.connect(reuse_if_open=True)
+            except MaxConnectionsExceeded:
+                return jsonify({
+                    "error": True,
+                    "message": "Serviço temporariamente indisponível. Tente novamente em instantes."
+                }), 503
 
     @app.get("/")
     def index():
@@ -53,5 +53,12 @@ def init_app(app=app):
         return jsonify({
             "error": "Imagem excede o tamanho máximo permitido (5MB)"
         }), 413
+
+    @app.errorhandler(MaxConnectionsExceeded)
+    def handle_max_connections_exceeded(error):
+        return jsonify({
+            "error": True,
+            "message": "Serviço temporariamente indisponível. Tente novamente em instantes."
+        }), 503
 
     return app

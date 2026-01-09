@@ -1,4 +1,4 @@
-from peewee import IntegrityError
+from peewee import IntegrityError, JOIN
 from app.models.product import Product
 from app.models.category import Category
 from app.models.image import Image
@@ -7,9 +7,16 @@ from app.services.upload_services import save_image, delete_image_file
 import math
 
 def get_all_products(page=1, per_page=12):
-    query = Product.select()
-    total_count = query.count()
-    products = list(query.paginate(page, per_page))
+    base_query = (
+        Product
+        .select(Product, Category, Image)
+        .join(Category, JOIN.LEFT_OUTER)
+        .switch(Product)
+        .join(Image, JOIN.LEFT_OUTER)
+    )
+    total_count = base_query.count()
+    page_query = base_query.paginate(page, per_page)
+    products = list(page_query)
     return products, total_count
 
 
@@ -141,16 +148,31 @@ def get_products_by_category_id(category_id, page=1, per_page=12):
         return ids
 
     category_ids = collect_ids(category)
-    query = Product.select().where(Product.category.in_(category_ids))
+    query = (
+        Product
+        .select(Product, Category, Image)
+        .join(Category, JOIN.LEFT_OUTER)
+        .switch(Product)
+        .join(Image, JOIN.LEFT_OUTER)
+        .where(Product.category.in_(category_ids))
+    )
     total_count = query.count()
-    products = list(query.paginate(page, per_page))
-    
+    page_query = query.paginate(page, per_page)
+    products = list(page_query)
     return products, total_count, None
 
 def get_new_arrivals(page=1, per_page=12):
-    query = Product.select().order_by(Product.created_at.desc())
+    query = (
+        Product
+        .select(Product, Category, Image)
+        .join(Category, JOIN.LEFT_OUTER)
+        .switch(Product)
+        .join(Image, JOIN.LEFT_OUTER)
+        .order_by(Product.created_at.desc())
+    )
     total_count = query.count()
-    products = list(query.paginate(page, per_page))
+    page_query = query.paginate(page, per_page)
+    products = list(page_query)
     return products, total_count
 
 def get_best_sellers(page=1, per_page=12):

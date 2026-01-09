@@ -210,3 +210,5 @@ __marimo__/
 *.sqlite
 
 app/static
+
+instructions.txt

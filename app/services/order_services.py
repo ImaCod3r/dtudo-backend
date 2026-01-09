@@ -6,17 +6,21 @@ from app.models.cart import Cart
 from app.models.cartItem import CartItem
 from app.services.address_services import create_address
 from app.services.notification_services import send_notification_to_admins, send_notification_to_user
+from peewee import prefetch
 
 SHIPPING_FEE = 2000.0
 
+
 def get_all():
-    return Order.select()
+    query = Order.select().order_by(Order.created_at.desc())
+    return list(prefetch(query, OrderItem, Product))
 
 def get_orders_by_user_id(user_id):
     user = User.get_or_none(User.id == user_id)
     if not user:
         return []
-    return user.orders
+    query = Order.select().where(Order.user == user).order_by(Order.created_at.desc())
+    return list(prefetch(query, OrderItem, Product))
 
 def _lookup_product_from_payload(prod_payload):
     if not prod_payload:
