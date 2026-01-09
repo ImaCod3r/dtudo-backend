@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.middlewares.auth_middlewares import auth_required, is_admin
-from app.services.order_services import create, update_status, get_all, get_orders_by_user_id
+from app.services.order_services import create, update_status, get_all, get_orders_by_user_id, delete
 
 order_bp = Blueprint('order', __name__)
 
@@ -116,4 +116,23 @@ def get_all_orders():
         'error': False,
         'orders': [order.to_dict() for order in orders],
         'total': len(orders)
+    }), 200
+
+@order_bp.delete('/<int:id>')
+@auth_required
+@is_admin
+def delete_order(id):
+    deleted_order, error = delete(id)
+
+    if error:
+        status_code = 404 if error == "Pedido não encontrado." else 400
+        return jsonify({
+            'error': True,
+            'message': error
+        }), status_code
+
+    return jsonify({
+        'error': False,
+        'message': 'Pedido removido com sucesso!',
+        'order': deleted_order
     }), 200

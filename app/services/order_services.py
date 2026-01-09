@@ -141,3 +141,17 @@ def update_status(order_id, new_status):
         calculate_commissions_for_order(order)
 
     return order, None
+
+def delete(order_id):
+    order = Order.get_or_none(Order.id == order_id)
+    if not order:
+        return None, "Pedido não encontrado."
+
+    order_data = order.to_dict()
+
+    try:
+        order.delete_instance(recursive=True)
+    except Exception:
+        return None, "Erro ao remover o pedido."
+
+    return order_data, None
